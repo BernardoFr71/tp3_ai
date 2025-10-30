@@ -1,12 +1,3 @@
-Excelente\! Uma documentação de alta qualidade é crucial para qualquer projeto de software.
-
-Vou criar um ficheiro `README.md` **completo e profissional** para o teu projeto "Parser", incluindo uma secção dedicada à nova *feature* de VP Chunking, que faz referência ao ficheiro `FEATURE_VP_CHUNKING.md` que criámos.
-
-## 📄 Ficheiro `README.md` (Completo e Detalhado)
-
-Cria um ficheiro chamado `README.md` na pasta principal do teu projeto e cola o conteúdo abaixo:
-
-````markdown
 # 🤖 CS50 AI: Projeto Parser (NP e VP Chunking)
 
 ## 🎯 Visão Geral
@@ -123,6 +114,3 @@ Para uma análise aprofundada da lógica de implementação, gramática utilizad
 ## ✒️ Licença
 
 Este projeto é submetido sob a licença do CS50.
-
-```
-```
