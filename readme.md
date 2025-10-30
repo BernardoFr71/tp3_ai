@@ -107,7 +107,7 @@ Adicionámos uma nova funcionalidade que expande a capacidade de análise do par
 
 Para uma análise aprofundada da lógica de implementação, gramática utilizada e regras de identificação do verbo principal, consulte o documento:
 
-➡️ **[FEATURE\_VP\_CHUNKING.md](./FEATURE_VP_CHUNKING.md)**
+➡️ **[FEATURE\_VP\_CHUNKING.md](./parser/FEATURE_VP_CHUNKING.md)**
 
 -----
 
