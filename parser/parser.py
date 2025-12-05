@@ -48,7 +48,7 @@ def preprocess(sentence):
     """
     # Converter para minúsculas
     sentence = sentence.lower()
-    
+
     # Tokenizar
     try:
         tokens = nltk.word_tokenize(sentence)
@@ -58,7 +58,7 @@ def preprocess(sentence):
     # Filtrar pontuação e garantir que as palavras estão na gramática (opcional, mas seguro)
     # Mantemos apenas palavras que são alfanuméricas para remover pontuação solta
     filtered_tokens = [
-        word for word in tokens 
+        word for word in tokens
         if word not in string.punctuation and any(c.isalnum() for c in word)
     ]
 
@@ -66,26 +66,33 @@ def preprocess(sentence):
 
 def np_chunk(tree):
     """
-    Retorna uma lista de todos os 'noun phrase chunks' na árvore de sentenças.
-    Um 'noun phrase chunk' é definido como uma subárvore NP que não contém
-    outras subárvores NP dentro dela.
+    Return a list of all noun phrase chunks in the sentence tree.
+    A noun phrase chunk is defined as a subtree of the sentence
+    whose label is "NP" that does not contain other "NP" subtrees.
     """
     chunks = []
-    
-    # Percorrer todas as subárvores
+
+    # Itera sobre todas as subárvores da árvore principal
     for subtree in tree.subtrees():
         if subtree.label() == "NP":
-            # Verificar se esta NP contém outra NP dentro dela
             has_nested_np = False
-            for child in subtree:
-                if isinstance(child, Tree) and child.label() == "NP":
+
+            # CORREÇÃO: Verifica todos os descendentes, não apenas filhos diretos
+            # O metodo .subtrees() devolve o próprio nó e todos os abaixo dele
+            for descendant in subtree.subtrees():
+                # Ignora o próprio nó que estamos a testar
+                if descendant == subtree:
+                    continue
+
+                # Se encontrar qualquer outro NP lá em baixo, invalida este chunk
+                if descendant.label() == "NP":
                     has_nested_np = True
                     break
-            
-            # Se não tiver NP aninhada, é um chunk válido
+
+            # Se não tiver nenhum NP aninhado, é um chunk válido
             if not has_nested_np:
                 chunks.append(subtree)
-                
+
     return chunks
 
 # -------------------------------------------------------------------------
@@ -106,24 +113,24 @@ def vp_chunk_feature(tokens):
     # Gramática específica para a Feature de VPs
     # Captura verbos, advérbios e partículas associadas
     vp_grammar = r"""
-        VP: {<VB.*>+<RB.?>*<RP>?<DT|NN.*>?} 
+        VP: {<VB.*>+<RB.?>*<RP>?<DT|NN.*>?}
     """
-    
+
     cp = nltk.RegexpParser(vp_grammar)
     tree = cp.parse(pos_tags)
-    
+
     results = []
-    
+
     for subtree in tree.subtrees():
         if subtree.label() == "VP":
             # Reconstruir a frase do VP
             words = [w for w, t in subtree.leaves()]
             vp_str = " ".join(words)
-            
+
             # Identificar Head Verb (Heurística: verbo não-auxiliar ou o último verbo)
             head_verb = None
             aux_verbs = ['be', 'is', 'are', 'was', 'were', 'have', 'had', 'do', 'did']
-            
+
             # Procura o último verbo conjugado que não seja auxiliar comum
             leaves = subtree.leaves() # [(word, tag), ...]
             for word, tag in reversed(leaves):
@@ -131,16 +138,16 @@ def vp_chunk_feature(tokens):
                     if word not in aux_verbs:
                         head_verb = word
                         break
-            
+
             # Fallback: se não achar (ex: "was"), pega o primeiro verbo que encontrar
             if not head_verb:
                 for word, tag in leaves:
                     if tag.startswith('VB'):
                         head_verb = word
                         break
-            
+
             results.append((vp_str, head_verb))
-            
+
     return results
 
 # -------------------------------------------------------------------------
@@ -150,15 +157,15 @@ def vp_chunk_feature(tokens):
 def main():
     if len(sys.argv) != 2:
         sys.exit("Usage: python parser.py directory")
-    
+
     directory = sys.argv[1]
-    
+
     print(f"CS50 AI Parser | Carregando sentenças de: {directory}")
     print("=" * 60)
 
     # Tenta ler arquivos de 1.txt a 10.txt (ajustar conforme necessidade)
     import os
-    
+
     # Listar arquivos txt no diretório ordenadamente
     try:
         files = sorted([f for f in os.listdir(directory) if f.endswith(".txt")])
@@ -169,14 +176,14 @@ def main():
         filepath = os.path.join(directory, filename)
         with open(filepath) as f:
             sentence = f.read().strip()
-            
+
         print(f"\nFrase: {sentence}")
-        
+
         # 1. Preprocessamento
         s = preprocess(sentence)
         if not s:
             continue
-            
+
         # 2. Parsing CFG (Requisito CS50)
         try:
             trees = list(parser.parse(s))
@@ -189,7 +196,7 @@ def main():
         else:
             # Para o CS50, processamos a primeira árvore válida
             tree = trees[0]
-            
+
             print("\n[ESTRUTURA SINTÁTICA - CFG]")
             tree.pretty_print()
 
@@ -210,7 +217,7 @@ def main():
                     print(f"  - VP: '{vp_str}' | Head Verb: '{head}'")
             else:
                 print("  (Nenhum VP complexo encontrado)")
-        
+
         print("-" * 60)
 
 if __name__ == "__main__":
